@@ -1,6 +1,7 @@
 import { z } from "@hono/zod-openapi";
 
 import { createSuccessResponseSchema } from "@/shared/lib/http";
+import { registeredTemplates } from "@/shared/templates/registry";
 
 const identifierSchema = z
   .string()
@@ -27,12 +28,7 @@ export const otpSendRequestSchema = z
     ...commonRequestFields,
     template: z.literal("otp"),
     to: z.email().trim(),
-    data: z
-      .object({
-        otp: z.string().trim().min(1).max(32),
-        expiresIn: z.string().trim().min(1).max(100),
-      })
-      .strict(),
+    data: registeredTemplates.otp.dataSchema,
   })
   .strict();
 
@@ -41,13 +37,7 @@ export const contactFormSendRequestSchema = z
     ...commonRequestFields,
     template: z.literal("contact-form"),
     replyTo: z.email().trim(),
-    data: z
-      .object({
-        name: z.string().trim().min(1).max(120),
-        email: z.email().trim(),
-        message: z.string().trim().min(1).max(5000),
-      })
-      .strict(),
+    data: registeredTemplates["contact-form"].dataSchema,
   })
   .strict()
   .superRefine((payload, context) => {

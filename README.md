@@ -234,6 +234,7 @@ Logs never include OTP values, contact messages, recipient addresses, or reply-t
 
 ```bash
 bun run dev
+bun run email:dev
 bun run build
 bun run deploy
 bun run cf-typegen
@@ -243,6 +244,10 @@ bun run lint
 bun run lint:fix
 bun run format
 ```
+
+`bun run email:dev` opens the React Email preview using the same registered components that the
+worker renders in production. Templates, their Zod data schemas, and their HTML/text renderers are
+owned and deployed by this repository; product repositories consume only `POST /send`.
 
 `bun run deploy` does not provision verified domains or consumer service bindings. Configure those
 resources before production deployment.

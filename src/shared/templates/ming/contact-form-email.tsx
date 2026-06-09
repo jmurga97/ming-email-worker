@@ -10,16 +10,25 @@ import {
   Text,
 } from "@react-email/components";
 import { render } from "@react-email/render";
+import { z } from "zod";
 
 import { emailStyles } from "./styles";
 
-import type { RenderedEmail, TemplateBranding } from "./types";
+import type { RenderedEmail, TemplateBranding } from "../types";
 
-interface ContactFormEmailProps {
+export const contactFormEmailDataSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    email: z.email().trim(),
+    message: z.string().trim().min(1).max(5000),
+  })
+  .strict();
+
+export interface ContactFormEmailProps {
   branding: TemplateBranding;
-  email: string;
-  message: string;
-  name: string;
+  email: z.infer<typeof contactFormEmailDataSchema>["email"];
+  message: z.infer<typeof contactFormEmailDataSchema>["message"];
+  name: z.infer<typeof contactFormEmailDataSchema>["name"];
 }
 
 const copy = {
@@ -75,3 +84,15 @@ export async function renderContactFormEmail(props: ContactFormEmailProps): Prom
 
   return { html, text };
 }
+
+ContactFormEmail.PreviewProps = {
+  branding: {
+    name: "RoncalPhoto",
+    locale: "es",
+  },
+  email: "persona@example.com",
+  message: "Me gustaria recibir informacion sobre una sesion.",
+  name: "Persona",
+} satisfies ContactFormEmailProps;
+
+export default ContactFormEmail;

@@ -9,7 +9,8 @@ Cloudflare Workers.
 
 - Use Bun exclusively.
 - Keep TypeScript strict and avoid `any`.
-- Run `bun run lint`, `bun run check`, `bun test`, and `bun run build` before merging.
+- Dont implement tests without asking.
+- Run `bun run lint`, `bun run check`, and `bun run build` before merging.
 - Keep `POST /send` as the only public contract.
 - Never accept arbitrary subject, sender, recipient policy, HTML, or plain text from consumers.
 - Add new email capabilities as closed registered templates with dedicated Zod data schemas.

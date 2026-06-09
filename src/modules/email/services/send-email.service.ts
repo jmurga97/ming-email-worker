@@ -1,4 +1,4 @@
-import { renderRegisteredTemplate } from "@/modules/email/templates/registry";
+import { renderRegisteredTemplate } from "@/shared/templates/registry";
 
 import { resolveEmailPolicy } from "./email-policy.service";
 
