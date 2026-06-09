@@ -1,0 +1,20 @@
+name = "ming-email-worker"
+main = "src/index.ts"
+compatibility_date = "2026-05-03"
+upload_source_maps = true
+workers_dev = false
+
+[[send_email]]
+name = "SEND_EMAIL"
+remote = true
+allowed_sender_addresses = ["noreply@mail.murga.ing"]
+
+[observability]
+enabled = true
+
+[vars]
+NODE_ENV = "production"
+LOG_LEVEL = "info"
+ALLOWED_SENDERS = "[\"noreply@mail.murga.ing\"]"
+SENDER_PROFILES = "{\"roncalphoto-default\":{\"email\":\"noreply@mail.murga.ing\",\"name\":\"RoncalPhoto\"}}"
+PRODUCTS = "{\"roncalphoto\":{\"branding\":{\"name\":\"RoncalPhoto\",\"locale\":\"es\"},\"allowedTemplates\":[\"otp\",\"contact-form\"],\"allowedFromProfiles\":[\"roncalphoto-default\"],\"subjects\":{\"otp\":\"Tu codigo de acceso a RoncalPhoto\",\"contactForm\":\"Nuevo contacto desde RoncalPhoto\"},\"contactRecipient\":\"contact@example.com\"}}"
