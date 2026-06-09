@@ -31,7 +31,11 @@ export const defaultValidationHook: OpenAPIHonoOptions<AppBindings>["defaultHook
 export const notFoundHandler: NotFoundHandler<AppBindings> = () =>
   errorResponse("NOT_FOUND", "Not found", NOT_FOUND);
 
-export const onErrorHandler: ErrorHandler<AppBindings> = (error) => {
+export const onErrorHandler: ErrorHandler<AppBindings> = (error, context) => {
+  if (context.get("emailLogContext")) {
+    throw error;
+  }
+
   if (
     error instanceof HTTPException &&
     error.status === BAD_REQUEST &&

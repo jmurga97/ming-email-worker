@@ -15,6 +15,3 @@ enabled = true
 [vars]
 NODE_ENV = "production"
 LOG_LEVEL = "info"
-ALLOWED_SENDERS = "[\"noreply@mail.murga.ing\"]"
-SENDER_PROFILES = "{\"roncalphoto-default\":{\"email\":\"noreply@mail.murga.ing\",\"name\":\"RoncalPhoto\"}}"
-PRODUCTS = "{\"roncalphoto\":{\"branding\":{\"name\":\"RoncalPhoto\",\"locale\":\"es\"},\"allowedTemplates\":[\"otp\",\"contact-form\"],\"allowedFromProfiles\":[\"roncalphoto-default\"],\"subjects\":{\"otp\":\"Tu codigo de acceso a RoncalPhoto\",\"contactForm\":\"Nuevo contacto desde RoncalPhoto\"},\"contactRecipient\":\"contact@example.com\"}}"

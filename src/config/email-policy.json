@@ -1,0 +1,23 @@
+{
+  "senderProfiles": {
+    "roncalphoto-default": {
+      "email": "noreply@mail.murga.ing",
+      "name": "RoncalPhoto"
+    }
+  },
+  "products": {
+    "roncalphoto": {
+      "branding": {
+        "name": "RoncalPhoto",
+        "locale": "es"
+      },
+      "allowedTemplates": ["otp", "contact-form"],
+      "allowedFromProfiles": ["roncalphoto-default"],
+      "subjects": {
+        "otp": "Tu codigo de acceso a RoncalPhoto",
+        "contactForm": "Nuevo contacto desde RoncalPhoto"
+      },
+      "contactRecipient": "mariagabrielaroncal@gmail.com"
+    }
+  }
+}

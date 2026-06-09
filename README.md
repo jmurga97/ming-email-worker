@@ -29,7 +29,7 @@ payload limits, and business validation.
 The only route is:
 
 ```text
-POST /send
+POST /send?productId=<product-id>
 ```
 
 Every response uses one of these envelopes:
@@ -62,7 +62,6 @@ by server configuration and the registered template.
 
 ```json
 {
-  "product": "roncalphoto",
   "template": "otp",
   "fromProfile": "roncalphoto-default",
   "to": "admin@example.com",
@@ -84,7 +83,6 @@ The recipient is always read from product configuration. A caller cannot provide
 
 ```json
 {
-  "product": "roncalphoto",
   "template": "contact-form",
   "fromProfile": "roncalphoto-default",
   "replyTo": "person@example.com",
@@ -102,30 +100,27 @@ The recipient is always read from product configuration. A caller cannot provide
 
 ## Runtime configuration
 
-Configuration is supplied through Wrangler variables containing JSON and parsed with Zod on every
-request. Invalid or internally inconsistent configuration prevents delivery.
+Email policy is stored in `src/config/email-policy.json` and validated with Zod. Invalid or
+internally inconsistent configuration prevents delivery.
 
-| Variable          | Purpose                                                                        |
-| ----------------- | ------------------------------------------------------------------------------ |
-| `ALLOWED_SENDERS` | JSON array of addresses the application permits                                |
-| `SENDER_PROFILES` | JSON object mapping profile IDs to verified addresses and display names        |
-| `PRODUCTS`        | JSON object containing branding, permissions, subjects, and contact recipients |
-| `NODE_ENV`        | `development`, `test`, or `production`                                         |
-| `LOG_LEVEL`       | `debug`, `info`, `warn`, or `error`                                            |
-| `SEND_EMAIL`      | Cloudflare Email Service binding                                               |
+| Setting      | Source                         | Purpose                                         |
+| ------------ | ------------------------------ | ----------------------------------------------- |
+| Email policy | `src/config/email-policy.json` | Senders, profiles, products, and product policy |
+| `NODE_ENV`   | Wrangler variable              | `development`, `test`, or `production`          |
+| `LOG_LEVEL`  | Wrangler variable              | `debug`, `info`, `warn`, or `error`             |
+| `SEND_EMAIL` | Cloudflare binding             | Cloudflare Email Service binding                |
 
 Example:
 
 ```json
 {
-  "ALLOWED_SENDERS": ["noreply@mail.murga.ing"],
-  "SENDER_PROFILES": {
+  "senderProfiles": {
     "roncalphoto-default": {
       "email": "noreply@mail.murga.ing",
       "name": "RoncalPhoto"
     }
   },
-  "PRODUCTS": {
+  "products": {
     "roncalphoto": {
       "branding": {
         "name": "RoncalPhoto",
@@ -143,12 +138,12 @@ Example:
 }
 ```
 
-Each profile address must also appear in `ALLOWED_SENDERS`. Each allowed profile referenced by a
-product must exist. A product enabling `contact-form` must configure `contactRecipient`.
+Each allowed profile referenced by a product must exist. A product enabling `contact-form` must
+configure `contactRecipient`.
 
-The same addresses must be listed in `allowed_sender_addresses` for the `SEND_EMAIL` binding in
-`wrangler.toml`. That binding restriction is a second enforcement layer, not a replacement for
-application policy.
+Every sender profile address must be listed in `allowed_sender_addresses` for the `SEND_EMAIL`
+binding in `wrangler.toml`. Wrangler is the authority that restricts which addresses the worker
+can use as senders.
 
 ## Local development
 
@@ -159,7 +154,7 @@ Requirements:
 - a verified sender domain;
 - Wrangler credentials when using the remote email binding.
 
-Install dependencies and create local variables:
+Install dependencies and create local runtime variables:
 
 ```bash
 bun install
@@ -167,8 +162,8 @@ cp .dev.vars.example .dev.vars
 bun run dev
 ```
 
-The checked-in `.dev.vars.example` contains non-secret sample configuration. Do not commit
-`.dev.vars`.
+The checked-in `.dev.vars.example` contains only non-secret runtime settings. Email policy is read
+from `src/config/email-policy.json`. Do not commit `.dev.vars`.
 
 The development command uses the remote `SEND_EMAIL` binding. Sending requires the configured
 domain and address to be onboarded in Cloudflare Email Service with the required SPF, DKIM, DMARC,
@@ -187,13 +182,16 @@ service = "ming-email-worker"
 Call the internal service:
 
 ```ts
-const response = await env.EMAIL_WORKER.fetch("https://email-worker.internal/send", {
-  method: "POST",
-  headers: {
-    "content-type": "application/json",
+const response = await env.EMAIL_WORKER.fetch(
+  "https://email-worker.internal/send?productId=roncalphoto",
+  {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
   },
-  body: JSON.stringify(payload),
-});
+);
 ```
 
 Infrastructure topology is the authentication boundary in this version. Do not expose the worker
@@ -223,12 +221,11 @@ Structured logs include:
 
 - product;
 - template;
-- optional request ID;
-- outcome;
-- message ID on success;
-- stable error code on failure.
+- rejected or error outcome;
+- stable error code.
 
-Logs never include OTP values, contact messages, recipient addresses, or reply-to addresses.
+Only failed or rejected sends are logged. Logs never include OTP values, contact messages,
+recipient addresses, reply-to addresses, or message IDs.
 
 ## Commands
 
@@ -259,7 +256,7 @@ src/
 ├── app/                    # Hono bootstrap and top-level route registration
 ├── config/                 # Bindings, runtime policy, handlers, and status codes
 ├── modules/email/
-│   ├── routes/             # POST /send
+│   ├── routes/             # POST /send?productId=<product-id>
 │   ├── schemas/            # Discriminated request contract
 │   ├── services/           # Policy resolution and delivery
 │   └── templates/          # Closed React Email registry

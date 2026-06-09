@@ -13,9 +13,10 @@ export interface ResolvedEmailPolicy {
 
 export function resolveEmailPolicy(
   config: RuntimeConfig,
+  productId: string,
   payload: SendEmailRequest,
 ): ResolvedEmailPolicy {
-  const product = config.products[payload.product];
+  const product = config.products[productId];
 
   if (!product) {
     throw new PolicyError("PRODUCT_NOT_ALLOWED", "Product is not configured");
@@ -34,7 +35,7 @@ export function resolveEmailPolicy(
 
   const from = config.senderProfiles[payload.fromProfile];
 
-  if (!from || !config.allowedSenders.includes(from.email)) {
+  if (!from) {
     throw new PolicyError("SENDER_NOT_ALLOWED", "Sender is not allowed");
   }
 

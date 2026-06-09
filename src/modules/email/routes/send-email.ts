@@ -9,15 +9,12 @@ import {
   TOO_MANY_REQUESTS,
 } from "@/config/status-codes";
 import {
+  sendEmailQuerySchema,
   sendEmailRequestSchema,
   sendEmailResponseSchema,
 } from "@/modules/email/schemas/send-email.schema";
 import { sendTransactionalEmail } from "@/modules/email/services/send-email.service";
-import { toEmailServiceError } from "@/shared/errors/email-service-error";
-import { PolicyError } from "@/shared/errors/policy-error";
-import { errorResponse } from "@/shared/http/responses";
 import { createErrorResponse, jsonSuccess } from "@/shared/lib/http";
-import { logEmailEvent } from "@/shared/lib/logger";
 import { createApiRoute } from "@/shared/lib/openapi";
 
 const route = createApiRoute({
@@ -25,6 +22,7 @@ const route = createApiRoute({
   path: "/send",
   tags: ["Email"],
   request: {
+    query: sendEmailQuerySchema,
     body: {
       required: true,
       content: {
@@ -54,61 +52,16 @@ const route = createApiRoute({
 });
 
 export default createRouter().openapi(route, async (context) => {
+  const { productId } = context.req.valid("query");
   const payload = context.req.valid("json");
-  const logContext = {
-    product: payload.product,
+
+  context.set("emailLogContext", {
+    product: productId,
     template: payload.template,
-    ...(payload.metadata?.requestId ? { requestId: payload.metadata.requestId } : {}),
-  };
+  });
 
-  let config;
+  const config = parseRuntimeConfig(context.env);
+  const result = await sendTransactionalEmail(context.env, config, productId, payload);
 
-  try {
-    config = parseRuntimeConfig(context.env);
-  } catch {
-    logEmailEvent({
-      ...logContext,
-      outcome: "error",
-      errorCode: "INVALID_RUNTIME_CONFIG",
-    });
-
-    return errorResponse(
-      "INVALID_RUNTIME_CONFIG",
-      "Email worker configuration is invalid",
-      INTERNAL_SERVER_ERROR,
-    );
-  }
-
-  try {
-    const result = await sendTransactionalEmail(context.env, config, payload);
-
-    logEmailEvent({
-      ...logContext,
-      outcome: "success",
-      messageId: result.messageId,
-    });
-
-    return jsonSuccess(context, { messageId: result.messageId }, OK);
-  } catch (error) {
-    if (error instanceof PolicyError) {
-      logEmailEvent({
-        ...logContext,
-        outcome: "rejected",
-        errorCode: error.code,
-      });
-
-      return errorResponse(error.code, error.message, FORBIDDEN);
-    }
-
-    const emailError = toEmailServiceError(error);
-    const status = emailError.code === "EMAIL_RATE_LIMITED" ? TOO_MANY_REQUESTS : BAD_GATEWAY;
-
-    logEmailEvent({
-      ...logContext,
-      outcome: "error",
-      errorCode: emailError.code,
-    });
-
-    return errorResponse(emailError.code, emailError.message, status);
-  }
+  return jsonSuccess(context, { messageId: result.messageId }, OK);
 });

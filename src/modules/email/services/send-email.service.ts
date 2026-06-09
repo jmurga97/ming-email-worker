@@ -9,9 +9,10 @@ import type { SendEmailRequest } from "@/modules/email/schemas/send-email.schema
 export async function sendTransactionalEmail(
   env: Bindings,
   config: RuntimeConfig,
+  productId: string,
   payload: SendEmailRequest,
 ): Promise<EmailSendResult> {
-  const policy = resolveEmailPolicy(config, payload);
+  const policy = resolveEmailPolicy(config, productId, payload);
   const rendered = await renderRegisteredTemplate(payload, policy.product);
 
   return env.SEND_EMAIL.send({

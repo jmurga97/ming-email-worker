@@ -18,10 +18,15 @@ const metadataSchema = z
   .strict();
 
 const commonRequestFields = {
-  product: identifierSchema,
   fromProfile: identifierSchema,
   metadata: metadataSchema.optional(),
 };
+
+export const sendEmailQuerySchema = z
+  .object({
+    productId: identifierSchema,
+  })
+  .strict();
 
 export const otpSendRequestSchema = z
   .object({

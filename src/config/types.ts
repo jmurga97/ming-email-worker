@@ -1,3 +1,4 @@
+import type { EmailLogContext } from "@/shared/lib/logger";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 
 export interface EmailAddress {
@@ -24,15 +25,15 @@ export interface EmailBinding {
 
 export interface Bindings {
   SEND_EMAIL: EmailBinding;
-  ALLOWED_SENDERS: string;
-  SENDER_PROFILES: string;
-  PRODUCTS: string;
   NODE_ENV: string;
   LOG_LEVEL: string;
 }
 
 export type AppBindings = {
   Bindings: Bindings;
+  Variables: {
+    emailLogContext?: EmailLogContext;
+  };
 };
 
 export type App = OpenAPIHono<AppBindings>;
