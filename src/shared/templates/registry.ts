@@ -1,5 +1,6 @@
 import { contactFormEmailDataSchema, renderContactFormEmail } from "./ming/contact-form-email";
 import { otpEmailDataSchema, renderOtpEmail } from "./ming/otp-email";
+import { renderQmenutOtpEmail } from "./qmenut/otp-email";
 
 import type { RenderedEmail } from "./types";
 import type { ProductConfig } from "@/config/runtime";
@@ -19,10 +20,11 @@ export const registeredTemplates = {
 export async function renderRegisteredTemplate(
   payload: SendEmailRequest,
   product: ProductConfig,
+  productId: string,
 ): Promise<RenderedEmail> {
   switch (payload.template) {
     case "otp":
-      return registeredTemplates.otp.render({
+      return (productId === "qmenut" ? renderQmenutOtpEmail : registeredTemplates.otp.render)({
         branding: product.branding,
         otp: payload.data.otp,
         expiresIn: payload.data.expiresIn,

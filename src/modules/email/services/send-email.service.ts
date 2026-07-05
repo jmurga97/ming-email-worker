@@ -13,7 +13,7 @@ export async function sendTransactionalEmail(
   payload: SendEmailRequest,
 ): Promise<EmailSendResult> {
   const policy = resolveEmailPolicy(config, productId, payload);
-  const rendered = await renderRegisteredTemplate(payload, policy.product);
+  const rendered = await renderRegisteredTemplate(payload, policy.product, productId);
 
   return env.SEND_EMAIL.send({
     to: policy.to,

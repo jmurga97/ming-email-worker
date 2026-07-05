@@ -1,11 +1,27 @@
 {
   "senderProfiles": {
+    "qmenut-default": {
+      "email": "noreply@mail.murga.ing",
+      "name": "QMenut"
+    },
     "roncalphoto-default": {
       "email": "noreply@mail.murga.ing",
       "name": "RoncalPhoto"
     }
   },
   "products": {
+    "qmenut": {
+      "branding": {
+        "name": "QMenut",
+        "locale": "es"
+      },
+      "allowedTemplates": ["otp"],
+      "allowedFromProfiles": ["qmenut-default"],
+      "subjects": {
+        "otp": "Tu codigo de acceso a QMenut",
+        "contactForm": "Nuevo contacto desde QMenut"
+      }
+    },
     "roncalphoto": {
       "branding": {
         "name": "RoncalPhoto",
