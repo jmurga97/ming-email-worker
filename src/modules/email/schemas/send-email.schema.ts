@@ -28,12 +28,30 @@ export const sendEmailQuerySchema = z
   })
   .strict();
 
+export const analyticsDigestSendRequestSchema = z
+  .object({
+    ...commonRequestFields,
+    template: z.literal("analytics-digest"),
+    to: z.email().trim(),
+    data: registeredTemplates["analytics-digest"].dataSchema,
+  })
+  .strict();
+
 export const otpSendRequestSchema = z
   .object({
     ...commonRequestFields,
     template: z.literal("otp"),
     to: z.email().trim(),
     data: registeredTemplates.otp.dataSchema,
+  })
+  .strict();
+
+export const userInviteSendRequestSchema = z
+  .object({
+    ...commonRequestFields,
+    template: z.literal("user-invite"),
+    to: z.email().trim(),
+    data: registeredTemplates["user-invite"].dataSchema,
   })
   .strict();
 
@@ -55,8 +73,32 @@ export const contactFormSendRequestSchema = z
     }
   });
 
+export const quoteRequestSendRequestSchema = z
+  .object({
+    ...commonRequestFields,
+    template: z.literal("quote-request"),
+    replyTo: z.email().trim(),
+    data: registeredTemplates["quote-request"].dataSchema,
+  })
+  .strict()
+  .superRefine((payload, context) => {
+    if (payload.replyTo.toLowerCase() !== payload.data.email.toLowerCase()) {
+      context.addIssue({
+        code: "custom",
+        message: "replyTo must match data.email",
+        path: ["replyTo"],
+      });
+    }
+  });
+
 export const sendEmailRequestSchema = z
-  .discriminatedUnion("template", [otpSendRequestSchema, contactFormSendRequestSchema])
+  .discriminatedUnion("template", [
+    otpSendRequestSchema,
+    analyticsDigestSendRequestSchema,
+    contactFormSendRequestSchema,
+    quoteRequestSendRequestSchema,
+    userInviteSendRequestSchema,
+  ])
   .openapi("SendEmailRequest");
 
 export const sendEmailResponseDataSchema = z.object({
@@ -69,4 +111,7 @@ export const sendEmailResponseSchema = createSuccessResponseSchema(
 
 export type SendEmailRequest = z.infer<typeof sendEmailRequestSchema>;
 export type OtpSendRequest = z.infer<typeof otpSendRequestSchema>;
+export type AnalyticsDigestSendRequest = z.infer<typeof analyticsDigestSendRequestSchema>;
 export type ContactFormSendRequest = z.infer<typeof contactFormSendRequestSchema>;
+export type QuoteRequestSendRequest = z.infer<typeof quoteRequestSendRequestSchema>;
+export type UserInviteSendRequest = z.infer<typeof userInviteSendRequestSchema>;

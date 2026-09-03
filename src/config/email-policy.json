@@ -15,11 +15,13 @@
         "name": "QMenut",
         "locale": "es"
       },
-      "allowedTemplates": ["otp"],
+      "allowedTemplates": ["otp", "analytics-digest", "user-invite"],
       "allowedFromProfiles": ["qmenut-default"],
       "subjects": {
         "otp": "Tu codigo de acceso a QMenut",
-        "contactForm": "Nuevo contacto desde QMenut"
+        "contactForm": "Nuevo contacto desde QMenut",
+        "analyticsDigest": "Tu resumen quincenal de QMenut",
+        "userInvite": "Tu acceso al panel de QMenut"
       }
     },
     "roncalphoto": {

@@ -48,6 +48,50 @@ export function resolveEmailPolicy(
     };
   }
 
+  if (payload.template === "analytics-digest") {
+    if (!product.subjects.analyticsDigest) {
+      throw new PolicyError("DIGEST_SUBJECT_NOT_CONFIGURED", "Digest subject is not configured");
+    }
+
+    // El destinatario lo aporta la llamada; el asunto siempre lo fija la política.
+    return {
+      from,
+      product,
+      subject: product.subjects.analyticsDigest,
+      to: payload.to,
+    };
+  }
+
+  if (payload.template === "quote-request") {
+    const recipient = product.quoteRecipient ?? product.contactRecipient;
+    if (!recipient) {
+      throw new PolicyError("QUOTE_RECIPIENT_NOT_CONFIGURED", "Quote recipient is not configured");
+    }
+    if (!product.subjects.quoteRequest) {
+      throw new PolicyError("QUOTE_SUBJECT_NOT_CONFIGURED", "Quote subject is not configured");
+    }
+    return {
+      from,
+      product,
+      replyTo: payload.replyTo,
+      subject: product.subjects.quoteRequest,
+      to: recipient,
+    };
+  }
+
+  if (payload.template === "user-invite") {
+    if (!product.subjects.userInvite) {
+      throw new PolicyError("INVITE_SUBJECT_NOT_CONFIGURED", "Invite subject is not configured");
+    }
+
+    return {
+      from,
+      product,
+      subject: product.subjects.userInvite,
+      to: payload.to,
+    };
+  }
+
   if (!product.contactRecipient) {
     throw new PolicyError(
       "CONTACT_RECIPIENT_NOT_CONFIGURED",

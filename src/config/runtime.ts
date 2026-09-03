@@ -4,7 +4,13 @@ import emailPolicy from "@/config/email-policy.json";
 
 import type { Bindings } from "@/config/types";
 
-const templateNameSchema = z.enum(["otp", "contact-form"]);
+const templateNameSchema = z.enum([
+  "analytics-digest",
+  "contact-form",
+  "otp",
+  "quote-request",
+  "user-invite",
+]);
 
 const senderProfileSchema = z
   .object({
@@ -27,9 +33,13 @@ const productSchema = z
       .object({
         otp: z.string().trim().min(1).max(200),
         contactForm: z.string().trim().min(1).max(200),
+        quoteRequest: z.string().trim().min(1).max(200).optional(),
+        analyticsDigest: z.string().trim().min(1).max(200).optional(),
+        userInvite: z.string().trim().min(1).max(200).optional(),
       })
       .strict(),
     contactRecipient: z.email().trim().optional(),
+    quoteRecipient: z.email().trim().optional(),
   })
   .strict()
   .superRefine((product, context) => {
@@ -41,6 +51,47 @@ const productSchema = z
         code: "custom",
         message: "contactRecipient is required when contact-form is enabled",
         path: ["contactRecipient"],
+      });
+    }
+    if (
+      product.allowedTemplates.includes("quote-request") &&
+      product.quoteRecipient === undefined &&
+      product.contactRecipient === undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "quoteRecipient or contactRecipient is required when quote-request is enabled",
+        path: ["quoteRecipient"],
+      });
+    }
+    if (
+      product.allowedTemplates.includes("quote-request") &&
+      product.subjects.quoteRequest === undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "subjects.quoteRequest is required when quote-request is enabled",
+        path: ["subjects", "quoteRequest"],
+      });
+    }
+    if (
+      product.allowedTemplates.includes("analytics-digest") &&
+      product.subjects.analyticsDigest === undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "subjects.analyticsDigest is required when analytics-digest is enabled",
+        path: ["subjects", "analyticsDigest"],
+      });
+    }
+    if (
+      product.allowedTemplates.includes("user-invite") &&
+      product.subjects.userInvite === undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "subjects.userInvite is required when user-invite is enabled",
+        path: ["subjects", "userInvite"],
       });
     }
   });

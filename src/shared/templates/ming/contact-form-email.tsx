@@ -16,10 +16,22 @@ import { emailStyles } from "./styles";
 
 import type { RenderedEmail, TemplateBranding } from "../types";
 
+export const additionalFieldsSchema = z
+  .array(
+    z
+      .object({
+        label: z.string().trim().min(1).max(80),
+        value: z.string().trim().min(1).max(500),
+      })
+      .strict(),
+  )
+  .max(10);
+
 export const contactFormEmailDataSchema = z
   .object({
     name: z.string().trim().min(1).max(120),
     email: z.email().trim(),
+    fields: additionalFieldsSchema.optional(),
     message: z.string().trim().min(1).max(5000),
   })
   .strict();
@@ -27,6 +39,7 @@ export const contactFormEmailDataSchema = z
 export interface ContactFormEmailProps {
   branding: TemplateBranding;
   email: z.infer<typeof contactFormEmailDataSchema>["email"];
+  fields?: z.infer<typeof additionalFieldsSchema>;
   message: z.infer<typeof contactFormEmailDataSchema>["message"];
   name: z.infer<typeof contactFormEmailDataSchema>["name"];
 }
@@ -50,7 +63,13 @@ const copy = {
   },
 } as const;
 
-export function ContactFormEmail({ branding, email, message, name }: ContactFormEmailProps) {
+export function ContactFormEmail({
+  branding,
+  email,
+  fields,
+  message,
+  name,
+}: ContactFormEmailProps) {
   const content = copy[branding.locale];
 
   return (
@@ -67,6 +86,12 @@ export function ContactFormEmail({ branding, email, message, name }: ContactForm
             <Text style={emailStyles.value}>{name}</Text>
             <Text style={emailStyles.label}>{content.email}</Text>
             <Text style={emailStyles.value}>{email}</Text>
+            {fields?.map((field) => (
+              <Section key={`${field.label}:${field.value}`} style={emailStyles.row}>
+                <Text style={emailStyles.label}>{field.label}</Text>
+                <Text style={emailStyles.value}>{field.value}</Text>
+              </Section>
+            ))}
             <Hr style={emailStyles.divider} />
             <Text style={emailStyles.label}>{content.message}</Text>
             <Text style={emailStyles.value}>{message}</Text>
@@ -91,6 +116,10 @@ ContactFormEmail.PreviewProps = {
     locale: "es",
   },
   email: "persona@example.com",
+  fields: [
+    { label: "Telefono", value: "+58 000 0000000" },
+    { label: "Ciudad", value: "Caracas" },
+  ],
   message: "Me gustaria recibir informacion sobre una sesion.",
   name: "Persona",
 } satisfies ContactFormEmailProps;
